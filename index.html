@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Demandas — Condomínio</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --border: #e4e6eb;
+    --text-primary: #1b1f27;
+    --text-secondary: #6b7280;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --accent-soft: #eef2ff;
+    --success: #16a34a;
+    --success-soft: #dcfce7;
+    --warning: #d97706;
+    --warning-soft: #fef3c7;
+    --radius: 14px;
+    --shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+    --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  .app-shell {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  header.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .brand h1 {
+    font-size: 18px;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .brand p {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  nav.tabs {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px;
+    gap: 4px;
+    box-shadow: var(--shadow);
+  }
+
+  nav.tabs button {
+    border: none;
+    background: transparent;
+    padding: 9px 18px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  nav.tabs button.active {
+    background: var(--accent);
+    color: white;
+  }
+
+  nav.tabs button:not(.active):hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .view { display: none; }
+  .view.active { display: block; animation: fadeIn 0.25s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: var(--shadow);
+  }
+
+  .card h2 {
+    margin: 0 0 6px;
+    font-size: 20px;
+  }
+
+  .card .subtitle {
+    margin: 0 0 24px;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .field {
+    margin-bottom: 18px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+  }
+
+  .field input,
+  .field textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fbfbfc;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    resize: vertical;
+  }
+
+  .field input:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+    background: white;
+  }
+
+  .field textarea { min-height: 110px; }
+
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 560px) {
+    .row-2 { grid-template-columns: 1fr; }
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    width: 100%;
+  }
+
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: scale(0.99); }
+
+  .btn-small {
+    background: var(--success);
+    color: white;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .btn-small:hover { background: #15803d; }
+
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text-primary);
+    color: white;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s ease;
+    box-shadow: var(--shadow-md);
+    z-index: 100;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Painel do síndico */
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .filters {
+    display: flex;
+    gap: 6px;
+    background: var(--bg);
+    padding: 4px;
+    border-radius: 10px;
+  }
+
+  .filters button {
+    border: none;
+    background: transparent;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .filters button.active {
+    background: var(--surface);
+    color: var(--accent);
+    box-shadow: var(--shadow);
+  }
+
+  .stats {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stat-chip strong {
+    font-size: 16px;
+    color: var(--text-primary);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .dot.pending { background: var(--warning); }
+  .dot.done { background: var(--success); }
+
+  .request-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .request-item {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    background: var(--surface);
+    transition: box-shadow 0.15s ease;
+  }
+
+  .request-item:hover { box-shadow: var(--shadow-md); }
+
+  .request-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .request-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .apt-badge {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .request-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .status-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .status-badge.pending { background: var(--warning-soft); color: var(--warning); }
+  .status-badge.done { background: var(--success-soft); color: var(--success); }
+
+  .request-desc {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0 0 14px;
+    white-space: pre-wrap;
+  }
+
+  .request-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+  }
+
+  .request-dates {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .request-dates span strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+  }
+
+  .empty-state .icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .success-banner {
+    display: none;
+    background: var(--success-soft);
+    color: #166534;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .success-banner.show { display: flex; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <header class="top">
+    <div class="brand">
+      <div class="brand-icon">🏢</div>
+      <div>
+        <h1>Gestão de Demandas</h1>
+        <p>Condomínio — solicitações dos moradores</p>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button id="tabMoradorBtn" class="active" onclick="switchTab('morador')">Nova Solicitação</button>
+      <button id="tabSindicoBtn" onclick="switchTab('sindico')">Painel do Síndico</button>
+    </nav>
+  </header>
+
+  <!-- VIEW MORADOR -->
+  <section id="viewMorador" class="view active">
+    <div class="card" style="max-width:520px; margin: 0 auto;">
+      <h2>Nova Solicitação</h2>
+      <p class="subtitle">Preencha os dados abaixo para enviar sua solicitação ao síndico.</p>
+
+      <div class="success-banner" id="successBanner">✅ Solicitação enviada com sucesso!</div>
+
+      <form id="requestForm" onsubmit="return submitRequest(event)">
+        <div class="row-2">
+          <div class="field">
+            <label for="apto">Apartamento *</label>
+            <input type="text" id="apto" placeholder="Ex: 302" required maxlength="20">
+          </div>
+          <div class="field">
+            <label for="titulo">Título *</label>
+            <input type="text" id="titulo" placeholder="Ex: Vazamento na garagem" required maxlength="80">
+          </div>
+        </div>
+        <div class="field">
+          <label for="descricao">Solicitação *</label>
+          <textarea id="descricao" placeholder="Descreva com detalhes sua solicitação..." required maxlength="1000"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar Solicitação</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- VIEW SÍNDICO -->
+  <section id="viewSindico" class="view">
+    <div class="panel-header">
+      <h2 style="margin:0; font-size:20px;">Painel do Síndico</h2>
+      <div class="filters">
+        <button class="active" data-filter="todas" onclick="setFilter('todas')">Todas</button>
+        <button data-filter="pendente" onclick="setFilter('pendente')">Pendentes</button>
+        <button data-filter="concluida" onclick="setFilter('concluida')">Concluídas</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-chip"><span class="dot pending"></span> Pendentes: <strong id="countPending">0</strong></div>
+      <div class="stat-chip"><span class="dot done"></span> Concluídas: <strong id="countDone">0</strong></div>
+      <div class="stat-chip">Total: <strong id="countTotal">0</strong></div>
+    </div>
+
+    <div id="requestList" class="request-list"></div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // Estado em memória (dados existem enquanto a página estiver aberta)
+  let requests = [];
+  let nextId = 1;
+  let currentFilter = 'todas';
+
+  function switchTab(tab) {
+    document.getElementById('viewMorador').classList.toggle('active', tab === 'morador');
+    document.getElementById('viewSindico').classList.toggle('active', tab === 'sindico');
+    document.getElementById('tabMoradorBtn').classList.toggle('active', tab === 'morador');
+    document.getElementById('tabSindicoBtn').classList.toggle('active', tab === 'sindico');
+    if (tab === 'sindico') renderList();
+  }
+
+  function formatDateTime(date) {
+    return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function submitRequest(e) {
+    e.preventDefault();
+    const apto = document.getElementById('apto').value.trim();
+    const titulo = document.getElementById('titulo').value.trim();
+    const descricao = document.getElementById('descricao').value.trim();
+
+    if (!apto || !titulo || !descricao) return false;
+
+    const novaSolicitacao = {
+      id: nextId++,
+      apartamento: apto,
+      titulo: titulo,
+      solicitacao: descricao,
+      dataSolicitacao: new Date(),
+      status: 'pendente',
+      dataConclusao: null
+    };
+
+    requests.unshift(novaSolicitacao);
+
+    document.getElementById('requestForm').reset();
+    showBanner();
+    showToast('Solicitação registrada!');
+
+    return false;
+  }
+
+  function showBanner() {
+    const banner = document.getElementById('successBanner');
+    banner.classList.add('show');
+    setTimeout(() => banner.classList.remove('show'), 3000);
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  function setFilter(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.filters button').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.filter === filter);
+    });
+    renderList();
+  }
+
+  function markAsDone(id) {
+    const item = requests.find(r => r.id === id);
+    if (item && item.status === 'pendente') {
+      item.status = 'concluida';
+      item.dataConclusao = new Date();
+      renderList();
+      showToast('Solicitação marcada como concluída!');
+    }
+  }
+
+  function renderList() {
+    const container = document.getElementById('requestList');
+    const pendingCount = requests.filter(r => r.status === 'pendente').length;
+    const doneCount = requests.filter(r => r.status === 'concluida').length;
+
+    document.getElementById('countPending').textContent = pendingCount;
+    document.getElementById('countDone').textContent = doneCount;
+    document.getElementById('countTotal').textContent = requests.length;
+
+    let filtered = requests;
+    if (currentFilter === 'pendente') filtered = requests.filter(r => r.status === 'pendente');
+    if (currentFilter === 'concluida') filtered = requests.filter(r => r.status === 'concluida');
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">📭</div>
+          <div>Nenhuma solicitação encontrada.</div>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = filtered.map(r => `
+      <div class="request-item">
+        <div class="request-top">
+          <div class="request-title-group">
+            <span class="apt-badge">Apto ${escapeHtml(r.apartamento)}</span>
+            <h3 class="request-title">${escapeHtml(r.titulo)}</h3>
+          </div>
+          <span class="status-badge ${r.status === 'pendente' ? 'pending' : 'done'}">
+            ${r.status === 'pendente' ? '⏳ Pendente' : '✅ Concluída'}
+          </span>
+        </div>
+        <p class="request-desc">${escapeHtml(r.solicitacao)}</p>
+        <div class="request-footer">
+          <div class="request-dates">
+            <span>Solicitado em: <strong>${formatDateTime(r.dataSolicitacao)}</strong></span>
+            <span>Concluído em: <strong>${r.dataConclusao ? formatDateTime(r.dataConclusao) : '—'}</strong></span>
+          </div>
+          ${r.status === 'pendente' ? `<button class="btn btn-small" onclick="markAsDone(${r.id})">Marcar como concluída</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Dados de exemplo para demonstração inicial
+  (function seedExample() {
+    const now = new Date();
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    requests.push({
+      id: nextId++,
+      apartamento: '101',
+      titulo: 'Lâmpada queimada no corredor',
+      solicitacao: 'A lâmpada do corredor do 1º andar está queimada há dois dias.',
+      dataSolicitacao: yesterday,
+      status: 'pendente',
+      dataConclusao: null
+    });
+    requests.push({
+      id: nextId++,
+      apartamento: '205',
+      titulo: 'Barulho excessivo na academia',
+      solicitacao: 'Equipamento da academia fazendo barulho alto durante o uso.',
+      dataSolicitacao: yesterday,
+      status: 'concluida',
+      dataConclusao: now
+    });
+  })();
+
+  renderList();
+</script>
+
+</body>
+</html>
